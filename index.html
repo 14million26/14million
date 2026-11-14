@@ -84,6 +84,8 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 .art h2{font-family:var(--font-head);font-weight:800;font-size:clamp(1.3rem,3.6vw,1.9rem);line-height:1.55;margin:0;text-wrap:balance}
 .story p{margin:0 0 14px;max-width:66ch}
 .story p.take{font-weight:600;border-inline-start:4px solid var(--flame);padding-inline-start:14px;margin-top:6px}
+.credit{margin:0;padding:4px 14px;font-family:var(--font-head);font-size:.72rem;color:var(--muted);text-align:left;direction:ltr}
+.credit a{color:var(--muted)}
 .srcs{font-family:var(--font-head);font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 .srcs ul{margin:4px 0 0;padding-inline-start:18px}
 .srcs a{word-break:break-word}
@@ -149,7 +151,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
   function kOf(c){return (CATS[c]||{k:"var(--ink)"}).k;}
   function cover(x){
     var c=el('div','cover'); c.style.setProperty('--k',kOf(x.cat));
-    if(x.image){var i=el('img'); i.src=x.image; i.alt=x.image_alt||''; i.loading='lazy'; c.appendChild(i);}
+    if(x.image){var i=el('img'); i.src=x.image; i.alt=x.image_alt||''; i.loading='lazy'; i.referrerPolicy='no-referrer'; c.appendChild(i);}
     else{c.classList.add('gen'); if(x.cat==='قالوا') c.classList.add('dark'); c.appendChild(el('span','k',x.kicker||'')); c.appendChild(el('span','w',x.cat||'خبر'));}
     return c;
   }
@@ -208,6 +210,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     sh.addEventListener('click',function(){ try{navigator.clipboard.writeText(location.href).then(function(){sh.textContent='تم النسخ';},function(){sh.textContent=location.href;});}catch(e){sh.textContent=location.href;} });
     bar.appendChild(cl); bar.appendChild(sh); a.appendChild(bar);
     a.appendChild(cover(x));
+    if(x.image_credit){var cr=el('p','credit'); if(x.image_page){var cl2=el('a',null,x.image_credit); cl2.href=x.image_page; cl2.target='_blank'; cl2.rel='noopener'; cr.appendChild(cl2);} else cr.textContent=x.image_credit; a.appendChild(cr);}
     var i=el('div','art-in'); i.appendChild(meta(x)); var h=el('h2',null,x.title); h.id='art-title'; i.appendChild(h);
     var b=el('div','story'); var st=x.story||[]; st.forEach(function(p,n){b.appendChild(el('p',n===st.length-1&&st.length>1?'take':null,p));}); i.appendChild(b);
     if(x.sources&&x.sources.length){var s=el('div','srcs'); s.appendChild(el('strong',null,'المصادر')); var ul=el('ul');
