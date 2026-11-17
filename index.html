@@ -234,6 +234,8 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 
   fetch('data.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
     data=d;
+    if(d.cat_desc){Object.keys(d.cat_desc).forEach(function(k){ if(CATS[k]&&d.cat_desc[k]) CATS[k].d=d.cat_desc[k]; });}
+    if(d.site_title){var h1=document.querySelector('.mast h1'); if(h1) h1.textContent=d.site_title;}
     live=(d.items||[]).map(function(x){x._left=left(x.published||x.date); return x;}).filter(function(x){return x._left>=0;});
     live.sort(function(a,b){
       if(!!a.lead!==!!b.lead) return a.lead?-1:1;
