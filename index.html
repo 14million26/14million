@@ -139,11 +139,12 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 <script>
 (function(){
   var CATS = {
-    "قالوا":  {k:"var(--c-said)",  d:"تصريحات وقرارات رسمية عن المصريين بالخارج."},
-    "الواقع": {k:"var(--c-real)",  d:"ما حدث فعلاً للمصريين بالخارج."},
-    "الفجوة": {k:"var(--c-gap)",   d:"المسافة بين ما وُعد به وما تحقق."},
-    "حقوق":   {k:"var(--c-rights)",d:"الجنسية والجوازات والوثائق والحريات."},
-    "الفلوس": {k:"var(--c-money)", d:"التحويلات والرسوم وأين تذهب."}
+    "تصريحات رسمية": {k:"var(--c-said)",  d:"تصريحات وقرارات رسمية عن المصريين بالخارج."},
+    "من الواقع": {k:"var(--c-real)",  d:"ما حدث فعلاً للمصريين بالخارج."},
+    "وعود وواقع": {k:"var(--c-gap)",   d:"المسافة بين ما وُعد به وما تحقق."},
+    "حقوق وحريات": {k:"var(--c-rights)",d:"الجنسية والجوازات والوثائق والحريات."},
+    "اقتصاد": {k:"var(--c-money)", d:"التحويلات والرسوم وأين تذهب."},
+    "رياضة": {k:"#1f6f8b", d:"رياضيون مصريون بين البعثات والتجنيس."}
   };
   var MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   var PAGE = 12, shown = PAGE, state = {cat:"", q:"", country:""}, data = null, live = [];
@@ -155,7 +156,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
   function cover(x){
     var c=el('div','cover'); c.style.setProperty('--k',kOf(x.cat));
     if(x.image){var i=el('img'); i.src=x.image; i.alt=x.image_alt||''; i.loading='lazy'; i.referrerPolicy='no-referrer'; c.appendChild(i);}
-    else{c.classList.add('gen'); if(x.cat==='قالوا') c.classList.add('dark'); c.appendChild(el('span','k',x.kicker||'')); c.appendChild(el('span','w',x.cat||'خبر'));}
+    else{c.classList.add('gen'); if(x.cat==='تصريحات رسمية') c.classList.add('dark'); c.appendChild(el('span','k',x.kicker||'')); c.appendChild(el('span','w',x.cat||'خبر'));}
     return c;
   }
   function meta(x){
