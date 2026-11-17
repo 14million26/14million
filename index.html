@@ -86,6 +86,9 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 .story p.take{font-weight:600;border-inline-start:4px solid var(--flame);padding-inline-start:14px;margin-top:6px}
 .credit{margin:0;padding:4px 14px;font-family:var(--font-head);font-size:.72rem;color:var(--muted);text-align:left;direction:ltr}
 .credit a{color:var(--muted)}
+.pol{white-space:pre-line;font-size:1.08rem;line-height:1.95;margin:0}
+.plain{background:#f5f5f5;border-radius:14px;padding:14px 18px}
+.plain p{margin:0 0 10px;max-width:66ch}.plain p:last-child{margin:0}
 .srcs{font-family:var(--font-head);font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 .srcs ul{margin:4px 0 0;padding-inline-start:18px}
 .srcs a{word-break:break-word}
@@ -161,13 +164,13 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     var t=x._left===0?'يختفي اليوم':x._left===1?'يختفي غداً':'يختفي بعد '+x._left+' أيام';
     m.appendChild(el('span','fade'+(x._left<=1?' last':''),t)); return m;
   }
-  function excerpt(x){return (x.story&&x.story[0])||'';}
+  function excerpt(x){if(x.political){var t=x.political.split('\n').filter(function(l){return l.trim()&&l.trim()[0]!=='#';}).slice(0,3).join(' '); if(t) return t;} return (x.news&&x.news[0])||(x.story&&x.story[0])||'';}
   function filtered(){
     var q=state.q.trim();
     return live.filter(function(x){
       if(state.cat && x.cat!==state.cat) return false;
       if(state.country && (x.countries||[]).indexOf(state.country)<0) return false;
-      if(q){var hay=[x.title,x.kicker,(x.story||[]).join(' ')].join(' '); if(hay.indexOf(q)<0) return false;}
+      if(q){var hay=[x.title,x.kicker,x.political||'',(x.news||[]).join(' '),(x.story||[]).join(' ')].join(' '); if(hay.indexOf(q)<0) return false;}
       return true;
     });
   }
@@ -212,7 +215,8 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     a.appendChild(cover(x));
     if(x.image_credit){var cr=el('p','credit'); if(x.image_page){var cl2=el('a',null,x.image_credit); cl2.href=x.image_page; cl2.target='_blank'; cl2.rel='noopener'; cr.appendChild(cl2);} else cr.textContent=x.image_credit; a.appendChild(cr);}
     var i=el('div','art-in'); i.appendChild(meta(x)); var h=el('h2',null,x.title); h.id='art-title'; i.appendChild(h);
-    var b=el('div','story'); var st=x.story||[]; st.forEach(function(p,n){b.appendChild(el('p',n===st.length-1&&st.length>1?'take':null,p));}); i.appendChild(b);
+    if(x.political){ i.appendChild(el('p','pol',x.political)); if(x.news&&x.news.length){var pl=el('div','plain'); x.news.forEach(function(p){pl.appendChild(el('p',null,p));}); i.appendChild(pl);} }
+    else { var b=el('div','story'); var st=x.story||[]; st.forEach(function(p,n){b.appendChild(el('p',n===st.length-1&&st.length>1?'take':null,p));}); i.appendChild(b); }
     if(x.sources&&x.sources.length){var s=el('div','srcs'); s.appendChild(el('strong',null,'المصادر')); var ul=el('ul');
       x.sources.forEach(function(q){var li=el('li'); var l=el('a',null,q.name); l.href=q.url; l.target='_blank'; l.rel='noopener'; li.appendChild(l); ul.appendChild(li);});
       s.appendChild(ul); i.appendChild(s);}
@@ -232,6 +236,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     live=(d.items||[]).map(function(x){x._left=left(x.published||x.date); return x;}).filter(function(x){return x._left>=0;});
     live.sort(function(a,b){
       if(!!a.lead!==!!b.lead) return a.lead?-1:1;
+      if(typeof a.order==='number'&&typeof b.order==='number') return a.order-b.order;
       if(!!a.pin_top!==!!b.pin_top) return a.pin_top?-1:1;
       if((a.priority||4)!==(b.priority||4)) return (a.priority||4)-(b.priority||4);
       if((a.published||'')!==(b.published||'')) return a.published<b.published?1:-1;
