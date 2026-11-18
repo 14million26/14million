@@ -293,7 +293,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     data=d;
     if(d.cat_desc){Object.keys(d.cat_desc).forEach(function(k){ if(CATS[k]&&d.cat_desc[k]) CATS[k].d=d.cat_desc[k]; });}
     if(d.site_title){var h1=document.querySelector('.mast h1'); if(h1) h1.textContent=d.site_title;}
-    reports=(d.reports||[]).slice().sort(function(a,b){return (a.updated||'')<(b.updated||'')?1:-1;});
+    reports=(d.reports||[]).slice();
     live=(d.items||[]).map(function(x){x._left=left(x.published||x.date); return x;}).filter(function(x){return x._left>=0;});
     live.sort(function(a,b){
       if(!!a.lead!==!!b.lead) return a.lead?-1:1;
@@ -308,6 +308,13 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     var sel=document.getElementById('country'); Object.keys(cs).sort().forEach(function(c){var o=el('option',null,c); o.value=c; sel.appendChild(o);});
     document.getElementById('foot').textContent=d.about||'';
     render(); route();
+    fetch('reports.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(rj){
+      if(rj&&rj.reports&&rj.reports.length){ reports=rj.reports.slice(); }
+      reports.sort(function(a,b){return (a.updated||'')<(b.updated||'')?1:-1;});
+      var sel=document.getElementById('country'), have={}; Array.prototype.forEach.call(sel.options,function(o){have[o.value]=1;});
+      reports.forEach(function(x){(x.countries||[]).forEach(function(c){ if(!have[c]){have[c]=1; var o=el('option',null,c); o.value=c; sel.appendChild(o);} });});
+      render(); route();
+    }).catch(function(){});
   }).catch(function(){
     document.getElementById('stamp').textContent='تعذّر تحميل الأخبار. أعد فتح الصفحة بعد قليل.';
   });
