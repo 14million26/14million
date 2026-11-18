@@ -95,6 +95,24 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 .art-bar{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-family:var(--font-head);font-size:.85rem}
 .art-bar button{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 14px;cursor:pointer}
 .art-bar button:hover{border-color:var(--flame);color:var(--flame)}
+.files{display:flex;flex-direction:column;gap:12px}
+.files-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:3px solid var(--ink);padding-bottom:8px}
+.files-head h2{font-family:var(--font-mast);font-weight:400;font-size:clamp(1.9rem,6vw,2.6rem);line-height:1;margin:0;color:var(--ink)}
+.files-head p{margin:0;font-family:var(--font-head);font-size:.85rem;color:var(--muted)}
+.files-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.file{background:var(--ink);color:#fff;border:0;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:start;padding:0;box-shadow:var(--shadow);transition:transform .25s ease}
+.file:hover{transform:translateY(-3px)}
+.file .txt{padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px}
+.file h3{font-family:var(--font-head);font-weight:800;font-size:1.08rem;line-height:1.6;margin:0;text-wrap:balance}
+.file .ex{margin:0;color:#d6d6d6;font-size:.92rem;line-height:1.75;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.file .meta{color:#bdbdbd}
+.tag{color:#fff;background:var(--flame);border-radius:4px;padding:1px 8px;font-weight:800}
+.rep h3{font-family:var(--font-head);font-weight:800;font-size:1.15rem;margin:18px 0 8px;padding-inline-start:12px;border-inline-start:4px solid var(--flame)}
+.rep p{margin:0 0 12px;max-width:66ch}
+.rep .lede{font-size:1.1rem;font-weight:600;background:var(--soft);border-radius:14px;padding:14px 18px;max-width:none}
+.rep h3.hope{border-color:#1b7f3b}
+.files-link{font-family:var(--font-head);font-size:.85rem;font-weight:600;color:var(--ink);text-decoration:none;border:1px solid var(--ink);border-radius:999px;padding:4px 14px}
+.files-link:hover{background:var(--ink);color:#fff}
 @media (prefers-reduced-motion: no-preference){
   .card,.lead{animation:rise .45s ease-out both}
   @keyframes rise{from{transform:translateY(10px)}to{transform:none}}
@@ -109,6 +127,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
   <div class="mast-in">
     <a href="./" id="homelink" title="الرئيسية" style="display:flex;align-items:center;gap:inherit;color:inherit;text-decoration:none"><img src="images/logo.jpg" alt="شعار قهوة المصريين" width="64" height="64">
     <h1>١٤ مليون</h1></a>
+    <a class="files-link" href="#files-sec" id="fileslink" hidden>ملفات مفتوحة</a>
     <p class="stamp" id="stamp" style="margin-inline-start:auto"></p>
   </div>
 </header>
@@ -126,6 +145,10 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 </nav>
 
 <main>
+  <section class="files" id="files-sec" hidden aria-labelledby="files-title">
+    <div class="files-head"><h2 id="files-title">ملفات مفتوحة</h2><p>تقارير مطولة ترصد ما يواجهه المصريون في الخارج. لا تختفي، ونحدّثها كلما جدّ جديد.</p></div>
+    <div class="files-row" id="filesrow"></div>
+  </section>
   <section id="leadwrap"></section>
   <section class="grid" id="grid" aria-live="polite"></section>
   <button class="more" id="more" type="button" hidden>عرض المزيد</button>
@@ -147,7 +170,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     "رياضة": {k:"#1f6f8b", d:"رياضيون مصريون بين البعثات والتجنيس."}
   };
   var MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  var PAGE = 12, shown = PAGE, state = {cat:"", q:"", country:""}, data = null, live = [];
+  var PAGE = 12, shown = PAGE, state = {cat:"", q:"", country:""}, data = null, live = [], reports = [];
   function el(t,c,x){var e=document.createElement(t); if(c) e.className=c; if(x!=null) e.textContent=x; return e;}
   function nice(iso){var p=iso.split('-'); return (+p[2])+' '+MONTHS[+p[1]-1]+' '+p[0];}
   function left(iso){iso=iso||'';var p=iso.split('-'),n=new Date();
@@ -184,7 +207,40 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
       b.addEventListener('click',function(){state.cat=c; shown=PAGE; render();}); box.appendChild(b);
     });
   }
+  function renderFiles(){
+    var sec=document.getElementById('files-sec'), row=document.getElementById('filesrow'); row.textContent='';
+    var list=reports.filter(function(x){ if(state.cat||state.q) return false; if(state.country&&(x.countries||[]).indexOf(state.country)<0) return false; return true; });
+    sec.hidden=!list.length; document.getElementById('fileslink').hidden=!reports.length;
+    list.forEach(function(x){
+      var c=el('button','file'); c.type='button'; c.appendChild(cover(x));
+      var t=el('div','txt'); var m=el('div','meta'); m.appendChild(el('span','tag','ملف'));
+      m.appendChild(el('span',null,(x.countries||[]).join(' · '))); if(x.period) m.appendChild(el('span',null,x.period));
+      if(x.updated) m.appendChild(el('span',null,'آخر تحديث '+nice(x.updated.slice(0,10))));
+      t.appendChild(m); t.appendChild(el('h3',null,x.title)); t.appendChild(el('p','ex',x.summary||'')); c.appendChild(t);
+      c.addEventListener('click',function(){open(x.id);}); row.appendChild(c);
+    });
+  }
+  function showReport(x){
+    var a=document.getElementById('art'); a.textContent='';
+    var bar=el('div','art-bar'); var cl=el('button',null,'إغلاق'); cl.type='button'; cl.addEventListener('click',close);
+    var sh=el('button',null,'نسخ رابط الملف'); sh.type='button';
+    sh.addEventListener('click',function(){ try{navigator.clipboard.writeText(location.href).then(function(){sh.textContent='تم النسخ';},function(){sh.textContent=location.href;});}catch(e){sh.textContent=location.href;} });
+    bar.appendChild(cl); bar.appendChild(sh); a.appendChild(bar); a.appendChild(cover(x));
+    var i=el('div','art-in'); var m=el('div','meta'); m.appendChild(el('span','tag','ملف مفتوح'));
+    m.appendChild(el('span',null,(x.countries||[]).join(' · '))); if(x.period) m.appendChild(el('span',null,x.period));
+    if(x.updated) m.appendChild(el('span',null,'آخر تحديث '+nice(x.updated.slice(0,10)))); i.appendChild(m);
+    var h=el('h2',null,x.title); h.id='art-title'; i.appendChild(h);
+    var b=el('div','rep'); if(x.summary) b.appendChild(el('p','lede',x.summary));
+    (x.sections||[]).forEach(function(sc){ b.appendChild(el('h3',sc.kind==='hope'?'hope':null,sc.h)); (sc.p||[]).forEach(function(p){b.appendChild(el('p',null,p));}); });
+    i.appendChild(b);
+    if(x.sources&&x.sources.length){var s=el('div','srcs'); s.appendChild(el('strong',null,'المصادر')); var ul=el('ul');
+      x.sources.forEach(function(q){var li=el('li'); var l=el('a',null,q.name); l.href=q.url; l.target='_blank'; l.rel='noopener'; li.appendChild(l); ul.appendChild(li);});
+      s.appendChild(ul); i.appendChild(s);}
+    a.appendChild(i);
+    var sheet=document.getElementById('sheet'); sheet.dataset.open='1'; sheet.scrollTop=0; document.body.style.overflow='hidden'; cl.focus();
+  }
   function render(){
+    renderFiles();
     renderCats();
     var list=filtered(), lw=document.getElementById('leadwrap'), g=document.getElementById('grid'); lw.textContent=''; g.textContent='';
     if(!list.length){g.appendChild(el('p','empty','لا توجد أخبار تطابق اختيارك الآن. كل خبر يختفي بعد خمسة أيام من نشره.'));}
@@ -207,7 +263,8 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
   function close(){ history.replaceState(null,'',location.pathname+location.search); hide(); }
   function hide(){ var s=document.getElementById('sheet'); s.dataset.open='0'; document.body.style.overflow=''; }
   function show(id){
-    var x=live.filter(function(i){return i.id===id;})[0]; if(!x){hide(); return;}
+    var x=live.filter(function(i){return i.id===id;})[0];
+    if(!x){ var r=reports.filter(function(i){return i.id===id;})[0]; if(r){showReport(r);} else hide(); return; }
     var a=document.getElementById('art'); a.textContent='';
     var bar=el('div','art-bar'); var cl=el('button',null,'إغلاق'); cl.type='button'; cl.addEventListener('click',close);
     var sh=el('button',null,'نسخ رابط الخبر'); sh.type='button';
@@ -224,7 +281,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     a.appendChild(i);
     var sheet=document.getElementById('sheet'); sheet.dataset.open='1'; sheet.scrollTop=0; document.body.style.overflow='hidden'; cl.focus();
   }
-  function route(){ var id=location.hash.replace('#',''); if(id) show(decodeURIComponent(id)); else hide(); }
+  function route(){ var id=location.hash.replace('#',''); if(id==='files-sec'){hide(); return;} if(id) show(decodeURIComponent(id)); else hide(); }
   document.getElementById('sheet').addEventListener('click',function(e){ if(e.target.id==='sheet') close(); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape' && document.getElementById('sheet').dataset.open==='1') close(); });
   window.addEventListener('hashchange',route);
@@ -236,6 +293,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     data=d;
     if(d.cat_desc){Object.keys(d.cat_desc).forEach(function(k){ if(CATS[k]&&d.cat_desc[k]) CATS[k].d=d.cat_desc[k]; });}
     if(d.site_title){var h1=document.querySelector('.mast h1'); if(h1) h1.textContent=d.site_title;}
+    reports=(d.reports||[]).slice().sort(function(a,b){return (a.updated||'')<(b.updated||'')?1:-1;});
     live=(d.items||[]).map(function(x){x._left=left(x.published||x.date); return x;}).filter(function(x){return x._left>=0;});
     live.sort(function(a,b){
       if(!!a.lead!==!!b.lead) return a.lead?-1:1;
@@ -246,7 +304,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
       return a.date<b.date?1:-1;
     });
     document.getElementById('stamp').textContent='آخر تحديث '+nice((d.updated||'').slice(0,10));
-    var cs={}; live.forEach(function(x){(x.countries||[]).forEach(function(c){cs[c]=1;});});
+    var cs={}; live.concat(reports).forEach(function(x){(x.countries||[]).forEach(function(c){cs[c]=1;});});
     var sel=document.getElementById('country'); Object.keys(cs).sort().forEach(function(c){var o=el('option',null,c); o.value=c; sel.appendChild(o);});
     document.getElementById('foot').textContent=d.about||'';
     render(); route();
