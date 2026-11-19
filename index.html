@@ -111,6 +111,10 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 .rep p{margin:0 0 12px;max-width:66ch}
 .rep .lede{font-size:1.1rem;font-weight:600;background:var(--soft);border-radius:14px;padding:14px 18px;max-width:none}
 .rep h3.hope{border-color:#1b7f3b}
+.rep{margin-top:16px}
+.takebox{background:var(--soft);border-radius:14px;padding:14px 18px;margin-bottom:12px}
+.takebox p{margin:0 0 10px;max-width:66ch}
+.takebox p:last-child{margin:0}
 .files-link{font-family:var(--font-head);font-size:.85rem;font-weight:600;color:var(--ink);text-decoration:none;border:1px solid var(--ink);border-radius:999px;padding:4px 14px}
 .files-link:hover{background:var(--ink);color:#fff}
 @media (prefers-reduced-motion: no-preference){
@@ -273,7 +277,8 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     a.appendChild(cover(x));
     if(x.image_credit){var cr=el('p','credit'); if(x.image_page){var cl2=el('a',null,x.image_credit); cl2.href=x.image_page; cl2.target='_blank'; cl2.rel='noopener'; cr.appendChild(cl2);} else cr.textContent=x.image_credit; a.appendChild(cr);}
     var i=el('div','art-in'); i.appendChild(meta(x)); var h=el('h2',null,x.title); h.id='art-title'; i.appendChild(h);
-    if(x.political){ i.appendChild(el('p','pol',x.political)); if(x.news&&x.news.length){var pl=el('div','plain'); x.news.forEach(function(p){pl.appendChild(el('p',null,p));}); i.appendChild(pl);} }
+    if(x.sections&&x.sections.length){ if(x.political) i.appendChild(el('p','pol',x.political)); var rb=el('div','rep'); x.sections.forEach(function(sc){ rb.appendChild(el('h3',sc.kind==='hope'?'hope':(sc.kind==='take'?'takeh':null),sc.h)); var bx=sc.kind==='take'?el('div','takebox'):rb; (sc.p||[]).forEach(function(p){bx.appendChild(el('p',null,p));}); if(bx!==rb) rb.appendChild(bx); }); i.appendChild(rb); }
+    else if(x.political){ i.appendChild(el('p','pol',x.political)); if(x.news&&x.news.length){var pl=el('div','plain'); x.news.forEach(function(p){pl.appendChild(el('p',null,p));}); i.appendChild(pl);} }
     else { var b=el('div','story'); var st=x.story||[]; st.forEach(function(p,n){b.appendChild(el('p',n===st.length-1&&st.length>1?'take':null,p));}); i.appendChild(b); }
     if(x.sources&&x.sources.length){var s=el('div','srcs'); s.appendChild(el('strong',null,'المصادر')); var ul=el('ul');
       x.sources.forEach(function(q){var li=el('li'); var l=el('a',null,q.name); l.href=q.url; l.target='_blank'; l.rel='noopener'; li.appendChild(l); ul.appendChild(li);});
