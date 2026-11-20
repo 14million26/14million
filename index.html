@@ -47,6 +47,9 @@ button{font:inherit;color:inherit}
 .cats::-webkit-scrollbar{display:none}
 .cat{font-family:var(--font-head);font-size:.86rem;font-weight:600;white-space:nowrap;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 14px;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
 .cat:hover{border-color:var(--flame)}
+.sort{display:flex;align-items:center;gap:4px;font-family:var(--font-head);font-size:.8rem;color:var(--muted)}
+.sort .cat{padding:4px 12px;font-size:.8rem}
+.sort .cat[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .cat[aria-pressed="true"]{background:var(--k,var(--pressed));border-color:var(--k,var(--pressed));color:var(--on-flame)}
 .tools{display:flex;gap:8px;flex:1 1 280px}
 .tools input,.tools select{font-family:var(--font-head);font-size:.86rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-width:0}
@@ -149,6 +152,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
 <nav class="rail" aria-label="تصفية الأخبار">
   <div class="rail-in">
     <div class="cats" id="cats" role="group" aria-label="الأقسام"></div>
+    <div class="sort" id="sort" role="group" aria-label="ترتيب الأخبار"><span>رتّب:</span><button type="button" class="cat" data-s="ours" aria-pressed="true">ترتيبنا</button><button type="button" class="cat" data-s="new" aria-pressed="false">الأحدث</button><button type="button" class="cat" data-s="impact" aria-pressed="false">الأهم أثراً</button></div>
     <div class="tools">
       <label for="q" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">بحث</label>
       <input id="q" type="search" placeholder="ابحث في الأخبار">
@@ -208,14 +212,22 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     m.appendChild(el('span','fade'+(x._left<=1?' last':''),t)); return m;
   }
   function excerpt(x){if(x.political){var t=x.political.split('\n').filter(function(l){return l.trim()&&l.trim()[0]!=='#';}).slice(0,3).join(' '); if(t) return t;} return (x.news&&x.news[0])||(x.story&&x.story[0])||'';}
+  function bydate(a,b){ if((a.published||'')!==(b.published||'')) return a.published<b.published?1:-1; if((a.date||'')!==(b.date||'')) return a.date<b.date?1:-1; return (a.order||0)-(b.order||0); }
+  function sorted(list){
+    var s=state.sort||'ours'; if(s==='ours') return list;
+    list=list.slice();
+    if(s==='new') list.sort(function(a,b){ var d=bydate(a,b); return d||((a.priority||4)-(b.priority||4)); });
+    else list.sort(function(a,b){ var pa=a.priority||4, pb=b.priority||4; if(pa!==pb) return pa-pb; return bydate(a,b); });
+    return list;
+  }
   function filtered(){
     var q=state.q.trim();
-    return live.filter(function(x){
+    return sorted(live.filter(function(x){
       if(state.cat && x.cat!==state.cat) return false;
       if(state.country && (x.countries||[]).indexOf(state.country)<0) return false;
       if(q){var hay=[x.title,x.kicker,x.political||'',(x.news||[]).join(' '),(x.story||[]).join(' ')].join(' '); if(hay.indexOf(q)<0) return false;}
       return true;
-    });
+    }));
   }
   function renderCats(){
     var box=document.getElementById('cats'); box.textContent='';
@@ -265,7 +277,7 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
     if(!list.length){g.appendChild(el('p','empty','لا توجد أخبار تطابق اختيارك الآن. كل خبر يختفي بعد خمسة أيام من نشره.'));}
     var rest=list;
     if(!state.cat && !state.q && !state.country && list.length){
-      var lead=list.filter(function(x){return x.lead;})[0]||list[0]; rest=list.filter(function(x){return x!==lead;});
+      var lead=((state.sort||'ours')==='ours'&&list.filter(function(x){return x.lead;})[0])||list[0]; rest=list.filter(function(x){return x!==lead;});
       var L=el('article','lead'); L.tabIndex=0; L.setAttribute('role','button');
       L.appendChild(cover(lead)); var t=el('div','lead-text'); t.appendChild(meta(lead)); t.appendChild(el('h2',null,lead.title)); t.appendChild(el('p',null,excerpt(lead)));
       L.appendChild(t); L.addEventListener('click',function(){open(lead.id);});
@@ -305,6 +317,12 @@ footer .in{max-width:1180px;margin:0 auto;padding:22px 16px 30px}
   document.getElementById('sheet').addEventListener('click',function(e){ if(e.target.id==='sheet') close(); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape' && document.getElementById('sheet').dataset.open==='1') close(); });
   window.addEventListener('hashchange',route);
+  try{var sv=localStorage.getItem('14m-sort'); if(sv==='new'||sv==='impact') state.sort=sv;}catch(e){}
+  Array.prototype.forEach.call(document.querySelectorAll('#sort .cat'),function(b){
+    b.setAttribute('aria-pressed',String((state.sort||'ours')===b.dataset.s));
+    b.addEventListener('click',function(){ state.sort=b.dataset.s; try{localStorage.setItem('14m-sort',state.sort);}catch(e){}
+      Array.prototype.forEach.call(document.querySelectorAll('#sort .cat'),function(o){o.setAttribute('aria-pressed',String(o===b));}); shown=PAGE; render(); });
+  });
   document.getElementById('more').addEventListener('click',function(){shown+=PAGE; render();});
   var qt; document.getElementById('q').addEventListener('input',function(e){clearTimeout(qt); qt=setTimeout(function(){state.q=e.target.value; shown=PAGE; render();},200);});
   document.getElementById('country').addEventListener('change',function(e){state.country=e.target.value; shown=PAGE; render();});
